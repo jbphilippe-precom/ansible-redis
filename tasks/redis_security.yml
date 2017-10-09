@@ -1,0 +1,61 @@
+---
+- name: "Add Cluster Master password"
+  lineinfile:
+    dest="/etc/redis/redis-server-{{ redis_master_port }}.conf"
+    line="requirepass {{ redis_master_password }}"
+    state=present
+  when:
+    redis_master_password != ""
+    and redis_cluster
+  notify: Restart Master
+
+- name: "Add Cluster Master masterauth password"
+  lineinfile:
+    dest="/etc/redis/redis-server-{{ redis_master_port }}.conf"
+    line="masterauth {{ redis_master_password }}"
+    state=present
+  when:
+    redis_master_password != ""
+    and redis_cluster
+  notify: Restart Master
+
+- name: "Add Cluster slave password"
+  lineinfile:
+    dest="/etc/redis/redis-server-{{ redis_slave_port }}.conf"
+    line="requirepass {{ redis_master_password }}"
+    state=present
+  when:
+    redis_master_password != ""
+    and redis_cluster
+  notify: Restart Master
+
+- name: "Add password to cluster slave configuration"
+  lineinfile:
+    dest="/etc/redis/redis-server-{{ redis_slave_port }}.conf"
+    line="masterauth {{ redis_master_password }}"
+    state=present
+  when:
+    redis_master_password != ""
+    and redis_cluster
+  notify: Restart Slave
+
+- name: "Add password"
+  lineinfile:
+    dest="/etc/redis/redis-server-{{ redis_port }}.conf"
+    line="requirepass {{ redis_master_password }}"
+    state=present
+  when:
+    redis_master_password != ""
+    and not redis_cluster
+  notify: Restart Redis
+
+- name: "Add password to MS slave configuration"
+  lineinfile:
+    dest="/etc/redis/redis-server-{{ redis_port }}.conf"
+    line="masterauth {{ redis_master_password }}"
+    state=present
+  when:
+    redis_master_password != ""
+    and redis_ms
+  notify:
+    Restart Redis

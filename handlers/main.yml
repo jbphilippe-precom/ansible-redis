@@ -1,0 +1,29 @@
+---
+# handlers file for ansible-redis
+- name: Set Transparent Hugepage
+  become: yes
+  shell: "echo never > /sys/kernel/mm/transparent_hugepage/enabled"
+
+- name: Restart Master
+  become: yes
+  service:
+    name=redis-server-{{ redis_master_port }}
+    state=restarted
+
+- name: Restart Slave
+  become: yes
+  service:
+    name=redis-server-{{ redis_slave_port }}
+    state=restarted
+
+- name: Restart Redis
+  become: yes
+  service:
+    name=redis-server-{{ redis_port }}
+    state=restarted
+
+- name: Restart Sentinel
+  become: yes
+  service:
+    name=redis-sentinel-{{ redis_sentinel_port }}
+    state=restarted

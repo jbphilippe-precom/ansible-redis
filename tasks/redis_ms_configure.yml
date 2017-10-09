@@ -1,0 +1,53 @@
+---
+- name: "Add Master Host in slave configuration"
+  lineinfile:
+    dest="/etc/redis/redis-server-{{ redis_port }}.conf"
+    line="slaveof {{ redis_master_ip }} {{ redis_port }}"
+    state=present
+  when: redis_master_ip not in ansible_all_ipv4_addresses
+  notify: Restart Redis
+
+## Sentinel ##
+## link created for compatibilities between 3.0 3.1 and 3.2 ##
+- name: compat binary name for 3.1 and 3.2
+  file:
+    src: /usr/bin/redis-server
+    dest: /usr/bin/redis-sentinel
+    owner: root
+    group: root
+    state: link
+
+- name: "Configure Sentinel"
+  template:
+    src="{{ redis_sentinel_config_tpl }}"
+    dest="/etc/redis/redis-sentinel-{{ redis_sentinel_port }}.conf"
+    owner=redis
+    group=redis
+    mode=0640
+  notify: Restart Sentinel
+## INITD ##
+- name: "Upload init script for Sentinel"
+  template:
+    src="{{ redis_init_script_sentinel }}"
+    dest="/etc/init.d/redis-sentinel-{{ redis_sentinel_port }}"
+    owner=root
+    group=root
+    mode=0755
+  notify: Restart Sentinel
+  when: ansible_distribution_release == 'trusty'
+
+## SYSTEMD ##
+- name: "Adding systemd script for sentinel"
+  template:
+    src="{{ redis_systemd_script_sentinel }}"
+    dest="/lib/systemd/system/redis-sentinel-{{ redis_sentinel_port }}.service"
+    mode=0755
+  when: ansible_distribution_release == 'xenial'
+################
+
+- name: Start Sentinel
+  become: yes
+  service:
+    name=redis-sentinel-{{ redis_sentinel_port }}
+    enabled=yes
+    state=started

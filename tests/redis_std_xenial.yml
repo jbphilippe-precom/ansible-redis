@@ -1,0 +1,14 @@
+---
+- hosts: r1x02
+  roles:
+     - ../ansible-redis
+  vars:
+    redis_version: "latest"
+    redis_lv_create: yes
+    redis_lvsize: "1G"
+    redis_maxmemory: "1gb"
+    redis_maxmemory_policy: "allkeys-lru"
+    redis_cluster: no
+    redis_loglevel: "notice"
+    redis_appendonly: "yes"
+    redis_port: "6379"

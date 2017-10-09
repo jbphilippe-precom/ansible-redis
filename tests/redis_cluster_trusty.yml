@@ -1,0 +1,26 @@
+---
+- hosts: r3t02
+  roles:
+     - ../ansible-redis
+  vars:
+    redis_version: "latest"
+    redis_lv_create: yes
+    redis_lvsize: "1G"
+    redis_maxmemory: "1gb"
+    redis_maxmemory_policy: "allkeys-lru"
+    redis_cluster: yes
+    redis_cluster_node_timeout: "5000"
+    redis_loglevel: "notice"
+    redis_appendonly: "yes"
+    redis_master_port: "6379"
+    redis_slave_port: "6380"
+    redis_save_config:
+      - "save 900 1"
+      - "save 300 10"
+      - "save 42 10000"
+    redis_master_password: "RaieDix"
+    redis_master_list: "192.168.11.72:6379 192.168.11.73:6379 192.168.11.74:6379"
+    redis_slave_config:
+      - "192.168.11.73:6380 192.168.11.72:6379"
+      - "192.168.11.74:6380 192.168.11.73:6379"
+      - "192.168.11.72:6380 192.168.11.74:6379"

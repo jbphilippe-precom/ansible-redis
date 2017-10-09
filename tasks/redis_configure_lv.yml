@@ -1,0 +1,21 @@
+---
+## LV dédié  ##
+- name: "Adding lv_redis"
+  lvol:
+    vg="{{ redis_vg_root }}"
+    lv="{{ redis_lv_name }}"
+    size="{{ redis_lvsize }}"
+    state=present
+
+- name: "Creating FS ext4 for /dev/mapper/vg_vroot-lv_redis"
+  filesystem:
+    fstype=ext4
+    dev="/dev/mapper/{{ redis_vg_root }}-{{ redis_lv_name }}"
+
+- name: "Mounting /var/lib/redis"
+  mount:
+    src="/dev/mapper/{{ redis_vg_root }}-{{ redis_lv_name }}"
+    name=/var/lib/redis
+    fstype=ext4
+    opts=defaults,noatime,noexec
+    state=mounted

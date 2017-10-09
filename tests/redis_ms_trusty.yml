@@ -1,0 +1,24 @@
+---
+- hosts: r3t03
+  roles:
+     - ../ansible-redis
+  vars:
+    redis_version: "latest"
+    redis_lv_create: yes
+    redis_lvsize: "1G"
+    redis_maxmemory: "1gb"
+    redis_maxmemory_policy: "allkeys-lru"
+    redis_cluster: no
+    redis_cluster_node_timeout: "5000"
+    redis_loglevel: "notice"
+    redis_appendonly: "yes"
+    redis_port: "6379"
+    redis_ms: yes
+    redis_master_password: "42"
+    redis_master_ip: "192.168.11.75"
+    redis_sentinel_port: 26379
+    redis_sentinel_tmpdir: /tmp/
+    redis_sentinel_quorum: 2
+    redis_sentinel_down_after: 20000
+    redis_sentinel_parallel_syncs: 1
+    redis_sentinel_failover_timeout: 150000

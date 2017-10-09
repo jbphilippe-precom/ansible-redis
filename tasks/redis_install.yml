@@ -1,0 +1,31 @@
+---
+- include: redis_set_repository.yml
+  become: yes
+
+- include: redis_configure_lv.yml
+  become: yes
+  when: redis_lv_create
+
+- include: redis_system_optimization.yml
+  become: yes
+
+- include: redis_install_package.yml
+  become: yes
+
+- include: redis_prepare_configure.yml
+  become: yes
+
+- include: redis_configure.yml
+  become: yes
+  when: not redis_cluster
+
+- include: redis_cluster_configure.yml
+  become: yes
+  when: redis_cluster
+
+- include: redis_ms_configure.yml
+  become: yes
+  when: redis_ms
+
+- include: redis_security.yml
+  become: yes

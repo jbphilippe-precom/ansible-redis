@@ -1,0 +1,30 @@
+---
+- name: "Removing default init script"
+  service:
+    name=redis-server
+    enabled=no
+    state=stopped
+
+- name: "Removing default Redis configuration"
+  file:
+    path="/etc/redis/redis.conf"
+    state=absent
+
+- name: "Removing default Sentinel configuration"
+  file:
+    path="/etc/redis/sentinel.conf"
+    state=absent
+
+- name: "Removing default dump file"
+  file:
+    path="/var/lib/redis/dump.rdb"
+    state=absent
+
+- name: "create run directory for redis"
+  become: yes
+  file:
+    path="/var/run/redis"
+    state=directory
+    mode=0750
+    owner=redis
+    group=redis

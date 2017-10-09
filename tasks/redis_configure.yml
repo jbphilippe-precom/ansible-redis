@@ -1,0 +1,37 @@
+---
+## INITD ##
+- name: "Adding init script for standalone"
+  template:
+    src="{{ redis_init_script_std }}"
+    dest="/etc/init.d/redis-server-{{ redis_port }}"
+    mode=0755
+  when: ansible_distribution_release == 'trusty'
+
+## SYSTEMD ##
+- name: "Adding systemd script for standalone"
+  template:
+    src="{{ redis_systemd_script_std }}"
+    dest="/lib/systemd/system/redis-server-{{ redis_port }}.service"
+    mode=0644
+  when: ansible_distribution_release == 'xenial'
+
+- name: "Adding configuration for Standalone"
+  template:
+    src="{{ redis_std_config_tpl }}"
+    dest="/etc/redis/redis-server-{{ redis_port }}.conf"
+    owner=redis
+    group=redis
+    mode=0640
+  notify: Restart Redis
+
+- name: "stopping original Ubuntu Redis"
+  service:
+    name=redis-server
+    enabled=no
+    state=stopped
+
+- name: "Starting Redis"
+  service:
+    name=redis-server-{{ redis_port }}
+    enabled=yes
+    state=started

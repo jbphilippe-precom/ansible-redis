@@ -1,0 +1,130 @@
+---
+
+- name: "Install Ruby"
+  apt:
+    name="ruby"
+    state=present
+    update_cache=true
+
+- name: "Uploading Redis Gem package"
+  copy:
+    src="{{ redis_ruby_gem }}"
+    dest="/tmp/{{ redis_ruby_gem }}"
+
+- name: "Install Redis Gem"
+  gem:
+    name=redis
+    gem_source=/tmp/redis-3.2.2.gem
+    state=present
+    user_install=no
+
+- name: "Uploading Redis Trib script"
+  copy:
+    src="{{ redis_trib }}"
+    dest="{{ redis_tribs_dest_path }}"
+    mode=0755
+
+## INITD ##
+- name: "Adding init script for master"
+  template:
+    src="{{ redis_init_script_master }}"
+    dest="/etc/init.d/redis-server-{{ redis_master_port }}"
+    mode=0755
+  when: ansible_distribution_release == 'trusty'
+
+- name: "Adding init script for slave"
+  template:
+    src="{{ redis_init_script_slave }}"
+    dest="/etc/init.d/redis-server-{{ redis_slave_port }}"
+    mode=0755
+  when: ansible_distribution_release == 'trusty'
+
+## SYSTEMD ##
+- name: "Adding systemd script for master"
+  template:
+    src="{{ redis_systemd_script_master }}"
+    dest="/lib/systemd/system/redis-server-{{ redis_master_port }}.service"
+    mode=0755
+  when: ansible_distribution_release == 'xenial'
+
+- name: "Adding systemd script for slave"
+  template:
+    src="{{ redis_systemd_script_slave }}"
+    dest="/lib/systemd/system/redis-server-{{ redis_slave_port }}.service"
+    mode=0755
+  when: ansible_distribution_release == 'xenial'
+
+################
+- name: "Adding configuration for master"
+  template:
+    src="{{ redis_master_config_tpl }}"
+    dest="/etc/redis/redis-server-{{ redis_master_port }}.conf"
+    owner=root
+    group=redis
+    mode=0640
+  notify: Restart Master
+
+- name: "Adding configuration for slave"
+  template:
+    src="{{ redis_slave_config_tpl }}"
+    dest="/etc/redis/redis-server-{{ redis_slave_port }}.conf"
+    owner=root
+    group=redis
+    mode=0640
+  notify: Restart Slave
+
+- name: "Starting master"
+  service:
+    name="redis-server-{{ redis_master_port }}"
+    enabled=yes
+    state=started
+
+- name: "Starting slave node"
+  service:
+    name="redis-server-{{ redis_slave_port }}"
+    enabled=yes
+    state=started
+
+- name: "Check cluster info"
+  shell: "redis-cli -p {{ redis_master_port }} cluster info"
+  register: redis_cluster_status
+  run_once: true
+  changed_when: false
+  when: redis_master_password == ""
+
+- name: "Master clustering"
+  shell: "redis-trib.rb create {{ redis_master_list }}"
+  run_once: true
+  when:
+    redis_master_password == ""
+    and redis_cluster_status.stdout.find("cluster_state:fail") != -1
+
+- name: "Adding slaves"
+  shell: "redis-trib.rb add-node --slave {{ item }}"
+  with_items: "{{ redis_slave_config }}"
+  run_once: true
+  when:
+    redis_master_password == ""
+    and redis_cluster_status.stdout.find("cluster_state:fail") != -1
+
+- name: "Check cluster info with password"
+  shell: "redis-cli -p {{ redis_master_port }} -a {{ redis_master_password }} cluster info"
+  register: redis_cluster_status
+  run_once: true
+  changed_when: false
+  when: redis_master_password != ""
+
+- name: "Master clustering with password"
+  shell: "redis-trib.rb create {{ redis_master_list }}"
+  run_once: true
+  when:
+    redis_master_password != ""
+    and redis_cluster_status.stdout.find("cluster_state:fail") != -1
+
+- name: "Adding slaves with password"
+  shell: "redis-trib.rb add-node --slave {{ item }}"
+  with_items: "{{ redis_slave_config }}"
+  run_once: true
+  when:
+    redis_master_password != ""
+    and redis_cluster_status.stdout.find("cluster_state:fail") != -1

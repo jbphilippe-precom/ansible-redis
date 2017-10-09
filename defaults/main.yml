@@ -1,0 +1,64 @@
+---
+# defaults file for ansible-redis
+## APT ##
+redis_apt_key: "http://mirror.services.local/pubkey/redis.gpg.pub"
+redis_apt_repo: "deb http://mirror.services.local/redis/ubuntu {{ ansible_distribution_release }} main"
+
+## protected-mode ##
+redis_protected_mode: True
+
+## LV ##
+redis_lv_create: yes
+redis_lv_name: "lv_redis"
+redis_vg_root: "vg_vroot"
+redis_lvsize: "5G"
+
+## Memory ##
+redis_maxmemory: "3gb"
+
+## save ##
+redis_appendonly: "no"
+redis_appendfsync: "everysec"
+
+## general ##
+redis_loglevel: "notice"
+redis_port: "6379"
+redis_std_config_tpl: "redis_conf_std.tpl"
+
+## Clustering ##
+redis_cluster: no
+redis_master_port: "6379"
+redis_slave_port: "6380"
+redis_master_password: ""
+redis_master_config_tpl: "redis_conf_cluster_master.tpl"
+redis_slave_config_tpl: "redis_conf_cluster_slave.tpl"
+redis_cluster_node_timeout: "15000"
+## empty for var declaration, must NOT be empty if you are using clustering ##
+redis_slave_config: ""
+
+## extras in dir files ##
+redis_ruby_gem: "redis-3.2.2.gem"
+redis_trib: "redis-trib.rb"
+
+## MS ##
+redis_ms: no
+redis_sentinel_config_tpl: "redis_sentinel.conf.tpl"
+redis_sentinel_port: 26379
+redis_sentinel_tmpdir: /tmp/
+redis_sentinel_quorum: 2
+## milliseconds ##
+redis_sentinel_down_after: 30000
+redis_sentinel_parallel_syncs: 1
+redis_sentinel_failover_timeout: 180000
+redis_min_slaves_to_write: 1
+redis_min_slaves_max_lag: 10
+
+## templating ##
+redis_init_script_master: "redis_init_script_master"
+redis_init_script_slave: "redis_init_script_slave"
+redis_init_script_std: "redis_init_script_std"
+redis_init_script_sentinel: "redis_init_script_sentinel"
+redis_systemd_script_std: "systemd.redis-server_std.service"
+redis_systemd_script_master: "systemd.redis-server_master.service"
+redis_systemd_script_slave: "systemd.redis-server_slave.service"
+redis_systemd_script_sentinel: "systemd.redis-server_sentinel.service"

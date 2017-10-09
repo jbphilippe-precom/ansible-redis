@@ -1,0 +1,16 @@
+---
+- name: Is Redis listening ?
+  wait_for: port={{ redis_port }}
+            delay=2
+            timeout=10
+  when:
+    redis_port is defined
+    and not redis_cluster
+
+- name: Is Redis Cluster listening ?
+  wait_for: port={{ redis_master_port }}
+            delay=2
+            timeout=10
+  when:
+    redis_master_port is defined
+    and redis_cluster

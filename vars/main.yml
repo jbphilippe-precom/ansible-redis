@@ -1,0 +1,5 @@
+---
+# vars file for ansible-redis
+redis_tribs_dest_path: "/usr/local/bin/"
+#redis_init_script: "redis_init_script"
+#redis_init_script_dest_name: "redis-server-custom"
